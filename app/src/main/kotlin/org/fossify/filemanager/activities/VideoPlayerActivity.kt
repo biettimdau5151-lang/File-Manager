@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -27,7 +25,6 @@ class VideoPlayerActivity : SimpleActivity() {
     private var currentSpeed = 1.0f
     private val speeds = floatArrayOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f)
     private var speedIndex = 2
-    private val handler = Handler(Looper.getMainLooper())
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,14 +69,12 @@ class VideoPlayerActivity : SimpleActivity() {
                 val tapX = e.x
 
                 if (tapX < viewWidth / 2) {
-                    // Double tap left side - rewind 10s
                     player?.let {
                         val newPosition = (it.currentPosition - 10000).coerceAtLeast(0)
                         it.seekTo(newPosition)
                         Toast.makeText(this@VideoPlayerActivity, "-10s", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    // Double tap right side - forward 10s
                     player?.let {
                         val newPosition = (it.currentPosition + 10000).coerceAtMost(it.duration)
                         it.seekTo(newPosition)
@@ -112,17 +107,32 @@ class VideoPlayerActivity : SimpleActivity() {
 
     private fun showSettingsPopup(view: View) {
         val popup = PopupMenu(this, view)
-        popup.menu.add(0, 1, 0, "Xoay màn hình")
-        popup.menu.add(0, 2, 1, "Tốc độ: ${currentSpeed}x")
+
+        // Rotation submenu
+        val rotateMenu = popup.menu.addSubMenu(0, 100, 0, "Xoay màn hình")
+        rotateMenu.add(1, 1, 0, "0° (Dọc)")
+        rotateMenu.add(1, 2, 1, "90° (Ngang)")
+        rotateMenu.add(1, 3, 2, "180° (Dọc ngược)")
+        rotateMenu.add(1, 4, 3, "270° (Ngang ngược)")
+
+        // Speed submenu
+        val speedMenu = popup.menu.addSubMenu(0, 200, 1, "Tốc độ: ${currentSpeed}x")
+        speeds.forEachIndexed { index, speed ->
+            speedMenu.add(2, index + 10, index, "${speed}x")
+        }
 
         popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
+            when (item.groupId) {
                 1 -> {
-                    rotateScreen()
+                    val rotation = item.itemId - 1
+                    setRotation(rotation * 90)
                     true
                 }
                 2 -> {
-                    changeSpeed()
+                    speedIndex = item.itemId - 10
+                    currentSpeed = speeds[speedIndex]
+                    player?.playbackParameters = PlaybackParameters(currentSpeed)
+                    Toast.makeText(this, "Tốc độ: ${currentSpeed}x", Toast.LENGTH_SHORT).show()
                     true
                 }
                 else -> false
@@ -131,22 +141,15 @@ class VideoPlayerActivity : SimpleActivity() {
         popup.show()
     }
 
-    private fun rotateScreen() {
-        currentRotation = (currentRotation + 90) % 360
-        requestedOrientation = when (currentRotation) {
+    private fun setRotation(degrees: Int) {
+        currentRotation = degrees
+        requestedOrientation = when (degrees) {
             0 -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             90 -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             180 -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT
             270 -> ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
             else -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
-    }
-
-    private fun changeSpeed() {
-        speedIndex = (speedIndex + 1) % speeds.size
-        currentSpeed = speeds[speedIndex]
-        player?.playbackParameters = PlaybackParameters(currentSpeed)
-        Toast.makeText(this, "Tốc độ: ${currentSpeed}x", Toast.LENGTH_SHORT).show()
     }
 
     private fun getMimeType(path: String): String {
