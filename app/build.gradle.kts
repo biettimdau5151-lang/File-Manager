@@ -145,5 +145,8 @@ dependencies {
     implementation(libs.gestureviews)
     implementation(libs.autofittextview)
     implementation(libs.zip4j)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.hls)
     detektPlugins(libs.compose.detekt)
 }

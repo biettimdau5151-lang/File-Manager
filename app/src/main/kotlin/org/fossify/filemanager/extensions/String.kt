@@ -17,7 +17,7 @@ fun String.isVideoFile(): Boolean {
     val videoExtensions = listOf(
         ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v",
         ".3gp", ".3g2", ".mpg", ".mpeg", ".ts", ".vob", ".ogv", ".rm",
-        ".rmvb", ".asf", ".divx", ".f4v"
+        ".rmvb", ".asf", ".divx", ".f4v", ".m3u8"
     )
     return videoExtensions.any { endsWith(it, true) }
 }

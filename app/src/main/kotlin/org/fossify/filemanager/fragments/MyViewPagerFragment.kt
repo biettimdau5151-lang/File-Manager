@@ -14,6 +14,7 @@ import org.fossify.filemanager.R
 import org.fossify.filemanager.activities.MainActivity
 import org.fossify.filemanager.activities.ReadTextActivity
 import org.fossify.filemanager.activities.SimpleActivity
+import org.fossify.filemanager.activities.VideoPlayerActivity
 import org.fossify.filemanager.databinding.ItemsFragmentBinding
 import org.fossify.filemanager.databinding.RecentsFragmentBinding
 import org.fossify.filemanager.databinding.StorageFragmentBinding
@@ -64,28 +65,11 @@ abstract class MyViewPagerFragment<BINDING : MyViewPagerFragment.InnerBinding>(c
     }
 
     private fun openVideoWithMxPlayer(path: String) {
-        val mxPlayerPackage = "com.mxtech.videoplayer.ad"
-        val mxPlayerProPackage = "com.mxtech.videoplayer.pro"
-
-        val file = File(path)
-        val uri = Uri.fromFile(file)
-
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "video/*")
-            setPackage(mxPlayerProPackage)
+        val intent = Intent(context, VideoPlayerActivity::class.java).apply {
+            putExtra("VIDEO_PATH", path)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-
-        try {
-            context?.startActivity(intent)
-        } catch (e: Exception) {
-            intent.setPackage(mxPlayerPackage)
-            try {
-                context?.startActivity(intent)
-            } catch (e2: Exception) {
-                activity?.tryOpenPathIntent(path, false)
-            }
-        }
+        context?.startActivity(intent)
     }
 
     fun updateIsCreateDocumentIntent(isCreateDocumentIntent: Boolean) {
