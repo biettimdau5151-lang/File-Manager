@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
 import android.graphics.drawable.LayerDrawable
 import android.net.Uri
+import android.os.Environment
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.Menu
@@ -116,6 +117,7 @@ import org.fossify.filemanager.models.ListItem
 import java.io.BufferedInputStream
 import java.io.Closeable
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.LinkedList
 import java.util.Locale
 
@@ -180,6 +182,8 @@ class ItemsAdapter(
             findItem(R.id.cab_open_as).isVisible = isOneFileSelected()
             findItem(R.id.cab_set_as).isVisible = isOneFileSelected()
             findItem(R.id.cab_create_shortcut).isVisible = isOneItemSelected()
+            findItem(R.id.cab_export_simple).isVisible = isOneDirectorySelected()
+            findItem(R.id.cab_export_full).isVisible = isOneDirectorySelected()
 
             checkHideBtnVisibility(this)
         }
@@ -199,6 +203,8 @@ class ItemsAdapter(
             R.id.cab_unhide -> toggleFileVisibility(false)
             R.id.cab_create_shortcut -> createShortcut()
             R.id.cab_copy_path -> copyPath()
+            R.id.cab_export_simple -> exportFolderListSimple()
+            R.id.cab_export_full -> exportFolderListFull()
             R.id.cab_set_as -> setAs()
             R.id.cab_open_with -> openWith()
             R.id.cab_open_as -> openAs()
@@ -276,6 +282,81 @@ class ItemsAdapter(
 
     private fun isOneFileSelected(): Boolean {
         return isOneItemSelected() && getItemWithKey(selectedKeys.first())?.isDirectory == false
+    }
+
+    private fun isOneDirectorySelected(): Boolean {
+        return isOneItemSelected() && getItemWithKey(selectedKeys.first())?.isDirectory == true
+    }
+
+    private fun exportFolderListSimple() {
+        val selectedItem = getItemWithKey(selectedKeys.first()) ?: return
+        val folder = File(selectedItem.path)
+        if (!folder.exists() || !folder.isDirectory) {
+            activity.toast(R.string.export_error)
+            return
+        }
+
+        try {
+            val sb = StringBuilder()
+            val items = folder.listFiles()?.sortedWith(
+                compareByDescending<File> { it.isDirectory }.thenBy { it.name }
+            )
+            items?.forEach { item ->
+                sb.appendLine(item.name)
+            }
+
+            val outputFile = File(
+                android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOCUMENTS
+                ),
+                "${folder.name}.txt"
+            )
+            outputFile.writeText(sb.toString())
+
+            activity.toast(String.format(activity.getString(R.string.export_success), outputFile.absolutePath))
+            finishActMode()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            activity.toast(R.string.export_error)
+        }
+    }
+
+    private fun exportFolderListFull() {
+        val selectedItem = getItemWithKey(selectedKeys.first()) ?: return
+        val folder = File(selectedItem.path)
+        if (!folder.exists() || !folder.isDirectory) {
+            activity.toast(R.string.export_error)
+            return
+        }
+
+        try {
+            val sb = StringBuilder()
+            sb.appendLine("=== ${folder.name} ===")
+            sb.appendLine("Date: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}")
+            sb.appendLine()
+
+            val items = folder.listFiles()?.sortedWith(
+                compareByDescending<File> { it.isDirectory }.thenBy { it.name }
+            )
+            items?.forEach { item ->
+                val size = if (item.isFile) activity.formatSize(item.length()) else "[DIR]"
+                sb.appendLine("${item.name} | $size")
+            }
+
+            val outputFile = File(
+                android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_DOCUMENTS
+                ),
+                "${folder.name}_full.txt"
+            )
+            outputFile.writeText(sb.toString())
+
+            activity.toast(String.format(activity.getString(R.string.export_success), outputFile.absolutePath))
+            finishActMode()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            activity.toast(R.string.export_error)
+        }
     }
 
     private fun checkHideBtnVisibility(menu: Menu) {

@@ -92,4 +92,14 @@
         android:icon="@drawable/ic_select_all_vector"
         android:title="@string/select_all"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/cab_export_simple"
+        android:showAsAction="never"
+        android:title="@string/export_simple_list"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/cab_export_full"
+        android:showAsAction="never"
+        android:title="@string/export_full_list"
+        app:showAsAction="never" />
 </menu>
