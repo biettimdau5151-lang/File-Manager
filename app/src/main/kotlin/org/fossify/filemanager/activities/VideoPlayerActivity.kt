@@ -98,12 +98,23 @@ class VideoPlayerActivity : SimpleActivity() {
 
     private fun toggleControls() {
         val controller = playerView.findViewById<View>(androidx.media3.ui.R.id.exo_controller)
+        val btnSettings = findViewById<ImageButton>(R.id.btn_settings)
+
         if (controller.visibility == View.VISIBLE) {
             controller.visibility = View.GONE
+            btnSettings.visibility = View.GONE
         } else {
             controller.visibility = View.VISIBLE
+            btnSettings.visibility = View.VISIBLE
+            // Auto hide after 3 seconds
+            handler.postDelayed({
+                controller.visibility = View.GONE
+                btnSettings.visibility = View.GONE
+            }, 3000)
         }
     }
+
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
     private fun showSettingsPopup(view: View) {
         val popup = PopupMenu(this, view)

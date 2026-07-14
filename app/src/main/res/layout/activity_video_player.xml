@@ -12,12 +12,13 @@
 
     <ImageButton
         android:id="@+id/btn_settings"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
+        android:background="#66000000"
         android:contentDescription="Settings"
+        android:padding="8dp"
         android:src="@android:drawable/ic_menu_manage"
         android:tint="@android:color/white" />
 
