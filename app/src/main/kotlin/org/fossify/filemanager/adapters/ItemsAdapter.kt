@@ -339,7 +339,17 @@ class ItemsAdapter(
                 compareByDescending<File> { it.isDirectory }.thenBy { it.name }
             )
             items?.forEach { item ->
-                val size = if (item.isFile) activity.formatSize(item.length()) else "[DIR]"
+                val size = if (item.isFile) {
+                    val bytes = item.length()
+                    when {
+                        bytes < 1024 -> "$bytes B"
+                        bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+                        bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
+                        else -> "${bytes / (1024 * 1024 * 1024)} GB"
+                    }
+                } else {
+                    "[DIR]"
+                }
                 sb.appendLine("${item.name} | $size")
             }
 
