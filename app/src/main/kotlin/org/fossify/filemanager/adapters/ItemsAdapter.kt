@@ -296,28 +296,50 @@ class ItemsAdapter(
             return
         }
 
-        try {
-            val sb = StringBuilder()
-            val items = folder.listFiles()?.sortedWith(
-                compareByDescending<File> { it.isDirectory }.thenBy { it.name }
-            )
-            items?.forEach { item ->
-                sb.appendLine(item.name)
+        val progressDialog = android.app.ProgressDialog(activity).apply {
+            setTitle("Exporting...")
+            setMessage("Scanning files...")
+            setCancelable(false)
+            show()
+        }
+
+        org.fossify.commons.helpers.ensureBackgroundThread {
+            try {
+                val sb = StringBuilder()
+                val items = folder.walkTopDown().filter { it != folder }.sortedWith(
+                    compareByDescending<File> { it.isDirectory }.thenBy { it.path }
+                )
+                var count = 0
+                items.forEach { item ->
+                    count++
+                    sb.appendLine(item.name)
+                    if (count % 100 == 0) {
+                        activity.runOnUiThread {
+                            progressDialog.setMessage("Scanning... $count files found")
+                        }
+                    }
+                }
+
+                val outputFile = File(
+                    android.os.Environment.getExternalStoragePublicDirectory(
+                        android.os.Environment.DIRECTORY_DOCUMENTS
+                    ),
+                    "${folder.name}.txt"
+                )
+                outputFile.writeText(sb.toString())
+
+                activity.runOnUiThread {
+                    progressDialog.dismiss()
+                    activity.toast(String.format(activity.getString(R.string.export_success), outputFile.absolutePath))
+                    finishActMode()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                activity.runOnUiThread {
+                    progressDialog.dismiss()
+                    activity.toast(R.string.export_error)
+                }
             }
-
-            val outputFile = File(
-                android.os.Environment.getExternalStoragePublicDirectory(
-                    android.os.Environment.DIRECTORY_DOCUMENTS
-                ),
-                "${folder.name}.txt"
-            )
-            outputFile.writeText(sb.toString())
-
-            activity.toast(String.format(activity.getString(R.string.export_success), outputFile.absolutePath))
-            finishActMode()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            activity.toast(R.string.export_error)
         }
     }
 
@@ -329,43 +351,68 @@ class ItemsAdapter(
             return
         }
 
-        try {
-            val sb = StringBuilder()
-            sb.appendLine("=== ${folder.name} ===")
-            sb.appendLine("Date: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}")
-            sb.appendLine()
+        val progressDialog = android.app.ProgressDialog(activity).apply {
+            setTitle("Exporting...")
+            setMessage("Scanning files...")
+            setCancelable(false)
+            show()
+        }
 
-            val items = folder.listFiles()?.sortedWith(
-                compareByDescending<File> { it.isDirectory }.thenBy { it.name }
-            )
-            items?.forEach { item ->
-                val size = if (item.isFile) {
-                    val bytes = item.length()
-                    when {
-                        bytes < 1024 -> "$bytes B"
-                        bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-                        bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
-                        else -> "${bytes / (1024 * 1024 * 1024)} GB"
+        org.fossify.commons.helpers.ensureBackgroundThread {
+            try {
+                val sb = StringBuilder()
+                sb.appendLine("=== ${folder.name} ===")
+                sb.appendLine("Date: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}")
+                sb.appendLine()
+
+                val items = folder.walkTopDown().filter { it != folder }.sortedWith(
+                    compareByDescending<File> { it.isDirectory }.thenBy { it.path }
+                )
+                var count = 0
+                items.forEach { item ->
+                    count++
+                    val size = if (item.isFile) {
+                        val bytes = item.length()
+                        when {
+                            bytes < 1024 -> "$bytes B"
+                            bytes < 1024 * 1024 -> "${bytes / 1024} KB"
+                            bytes < 1024 * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
+                            else -> "${bytes / (1024 * 1024 * 1024)} GB"
+                        }
+                    } else {
+                        "[DIR]"
                     }
-                } else {
-                    "[DIR]"
+                    sb.appendLine("${item.name} | $size")
+                    if (count % 100 == 0) {
+                        activity.runOnUiThread {
+                            progressDialog.setMessage("Scanning... $count items found")
+                        }
+                    }
                 }
-                sb.appendLine("${item.name} | $size")
+
+                sb.appendLine()
+                sb.appendLine("Total: $count items")
+
+                val outputFile = File(
+                    android.os.Environment.getExternalStoragePublicDirectory(
+                        android.os.Environment.DIRECTORY_DOCUMENTS
+                    ),
+                    "${folder.name}_full.txt"
+                )
+                outputFile.writeText(sb.toString())
+
+                activity.runOnUiThread {
+                    progressDialog.dismiss()
+                    activity.toast(String.format(activity.getString(R.string.export_success), outputFile.absolutePath))
+                    finishActMode()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                activity.runOnUiThread {
+                    progressDialog.dismiss()
+                    activity.toast(R.string.export_error)
+                }
             }
-
-            val outputFile = File(
-                android.os.Environment.getExternalStoragePublicDirectory(
-                    android.os.Environment.DIRECTORY_DOCUMENTS
-                ),
-                "${folder.name}_full.txt"
-            )
-            outputFile.writeText(sb.toString())
-
-            activity.toast(String.format(activity.getString(R.string.export_success), outputFile.absolutePath))
-            finishActMode()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            activity.toast(R.string.export_error)
         }
     }
 
