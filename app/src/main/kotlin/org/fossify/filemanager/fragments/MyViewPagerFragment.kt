@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.AttributeSet
 import android.widget.RelativeLayout
 import org.fossify.commons.extensions.*
+import org.fossify.commons.helpers.REAL_FILE_PATH
 import org.fossify.commons.helpers.VIEW_TYPE_LIST
 import org.fossify.commons.models.FileDirItem
 import org.fossify.commons.views.MyFloatingActionButton
@@ -51,7 +52,7 @@ abstract class MyViewPagerFragment<BINDING : MyViewPagerFragment.InnerBinding>(c
 
     private fun openTextFile(path: String) {
         val intent = Intent(context, ReadTextActivity::class.java).apply {
-            putExtra("REAL_FILE_PATH", path)
+            putExtra(REAL_FILE_PATH, path)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context?.startActivity(intent)
