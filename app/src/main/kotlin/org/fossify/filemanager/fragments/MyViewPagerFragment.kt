@@ -2,6 +2,7 @@ package org.fossify.filemanager.fragments
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.util.AttributeSet
 import android.widget.RelativeLayout
 import org.fossify.commons.extensions.*
@@ -18,8 +19,10 @@ import org.fossify.filemanager.databinding.RecentsFragmentBinding
 import org.fossify.filemanager.databinding.StorageFragmentBinding
 import org.fossify.filemanager.extensions.isPathOnRoot
 import org.fossify.filemanager.extensions.isTextFile
+import org.fossify.filemanager.extensions.isVideoFile
 import org.fossify.filemanager.extensions.tryOpenPathIntent
 import org.fossify.filemanager.helpers.RootHelpers
+import java.io.File
 
 abstract class MyViewPagerFragment<BINDING : MyViewPagerFragment.InnerBinding>(context: Context, attributeSet: AttributeSet) :
     RelativeLayout(context, attributeSet) {
@@ -45,6 +48,8 @@ abstract class MyViewPagerFragment<BINDING : MyViewPagerFragment.InnerBinding>(c
             }
         } else if (path.isTextFile()) {
             openTextFile(path)
+        } else if (path.isVideoFile()) {
+            openVideoWithMxPlayer(path)
         } else {
             activity?.tryOpenPathIntent(path, false)
         }
@@ -56,6 +61,31 @@ abstract class MyViewPagerFragment<BINDING : MyViewPagerFragment.InnerBinding>(c
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context?.startActivity(intent)
+    }
+
+    private fun openVideoWithMxPlayer(path: String) {
+        val mxPlayerPackage = "com.mxtech.videoplayer.ad"
+        val mxPlayerProPackage = "com.mxtech.videoplayer.pro"
+
+        val file = File(path)
+        val uri = Uri.fromFile(file)
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "video/*")
+            setPackage(mxPlayerProPackage)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        try {
+            context?.startActivity(intent)
+        } catch (e: Exception) {
+            intent.setPackage(mxPlayerPackage)
+            try {
+                context?.startActivity(intent)
+            } catch (e2: Exception) {
+                activity?.tryOpenPathIntent(path, false)
+            }
+        }
     }
 
     fun updateIsCreateDocumentIntent(isCreateDocumentIntent: Boolean) {

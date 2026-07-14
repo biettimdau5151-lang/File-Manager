@@ -13,6 +13,23 @@ fun String.isTextFile(): Boolean {
     return textExtensions.any { endsWith(it, true) }
 }
 
+fun String.isVideoFile(): Boolean {
+    val videoExtensions = listOf(
+        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v",
+        ".3gp", ".3g2", ".mpg", ".mpeg", ".ts", ".vob", ".ogv", ".rm",
+        ".rmvb", ".asf", ".divx", ".f4v"
+    )
+    return videoExtensions.any { endsWith(it, true) }
+}
+
+fun String.isAudioFile(): Boolean {
+    val audioExtensions = listOf(
+        ".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a",
+        ".opus", ".amr", ".mid", ".midi", ".aiff"
+    )
+    return audioExtensions.any { endsWith(it, true) }
+}
+
 fun String.isPathInHiddenFolder(): Boolean {
     val parts = split("/")
     for (i in 1 until parts.size - 1) {
