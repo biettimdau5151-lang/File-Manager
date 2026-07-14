@@ -1,6 +1,7 @@
 package org.fossify.filemanager.fragments
 
 import android.content.Context
+import android.content.Intent
 import android.util.AttributeSet
 import android.widget.RelativeLayout
 import org.fossify.commons.extensions.*
@@ -9,6 +10,7 @@ import org.fossify.commons.models.FileDirItem
 import org.fossify.commons.views.MyFloatingActionButton
 import org.fossify.filemanager.R
 import org.fossify.filemanager.activities.MainActivity
+import org.fossify.filemanager.activities.ReadTextActivity
 import org.fossify.filemanager.activities.SimpleActivity
 import org.fossify.filemanager.databinding.ItemsFragmentBinding
 import org.fossify.filemanager.databinding.RecentsFragmentBinding
@@ -39,9 +41,19 @@ abstract class MyViewPagerFragment<BINDING : MyViewPagerFragment.InnerBinding>(c
             } else {
                 activity?.toast(R.string.select_audio_file)
             }
+        } else if (path.isTextFile()) {
+            openTextFile(path)
         } else {
             activity?.tryOpenPathIntent(path, false)
         }
+    }
+
+    private fun openTextFile(path: String) {
+        val intent = Intent(context, ReadTextActivity::class.java).apply {
+            putExtra("REAL_FILE_PATH", path)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context?.startActivity(intent)
     }
 
     fun updateIsCreateDocumentIntent(isCreateDocumentIntent: Boolean) {
