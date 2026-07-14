@@ -16,6 +16,7 @@ import org.fossify.filemanager.databinding.ItemsFragmentBinding
 import org.fossify.filemanager.databinding.RecentsFragmentBinding
 import org.fossify.filemanager.databinding.StorageFragmentBinding
 import org.fossify.filemanager.extensions.isPathOnRoot
+import org.fossify.filemanager.extensions.isTextFile
 import org.fossify.filemanager.extensions.tryOpenPathIntent
 import org.fossify.filemanager.helpers.RootHelpers
 
